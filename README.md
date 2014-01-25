@@ -1,6 +1,6 @@
 ##README
 
-####This application was built by following this blog post by cavneb
+####This application was built by following this [blog post](http://coderberry.me/blog/2013/07/08/authentication-with-emberjs-part-1/) by [cavneb](https://github.com/cavneb).
 
 Resources Used:
 

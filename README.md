@@ -1,6 +1,6 @@
-== README
+##README
 
-This application was built by following this blog post by cavneb
+####This application was built by following this blog post by cavneb
 
 Resources Used:
 

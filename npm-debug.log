@@ -1,0 +1,120 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'install', '-g', 'fsmonitor' ]
+2 info using npm@1.3.21
+3 info using node@v0.10.24
+4 verbose cache add [ 'fsmonitor', null ]
+5 verbose cache add name=undefined spec="fsmonitor" args=["fsmonitor",null]
+6 verbose parsed url { protocol: null,
+6 verbose parsed url   slashes: null,
+6 verbose parsed url   auth: null,
+6 verbose parsed url   host: null,
+6 verbose parsed url   port: null,
+6 verbose parsed url   hostname: null,
+6 verbose parsed url   hash: null,
+6 verbose parsed url   search: null,
+6 verbose parsed url   query: null,
+6 verbose parsed url   pathname: 'fsmonitor',
+6 verbose parsed url   path: 'fsmonitor',
+6 verbose parsed url   href: 'fsmonitor' }
+7 silly lockFile 78d95ca2-fsmonitor fsmonitor
+8 verbose lock fsmonitor /Users/malchak/.npm/78d95ca2-fsmonitor.lock
+9 silly lockFile 78d95ca2-fsmonitor fsmonitor
+10 silly lockFile 78d95ca2-fsmonitor fsmonitor
+11 verbose addNamed [ 'fsmonitor', '' ]
+12 verbose addNamed [ null, '*' ]
+13 silly lockFile 3ebf2850-fsmonitor fsmonitor@
+14 verbose lock fsmonitor@ /Users/malchak/.npm/3ebf2850-fsmonitor.lock
+15 silly addNameRange { name: 'fsmonitor', range: '*', hasData: false }
+16 verbose url raw fsmonitor
+17 verbose url resolving [ 'https://registry.npmjs.org/', './fsmonitor' ]
+18 verbose url resolved https://registry.npmjs.org/fsmonitor
+19 info trying registry request attempt 1 at 16:33:42
+20 verbose etag "3VPRKGVJSHM71EW8WVKU4JH01"
+21 http GET https://registry.npmjs.org/fsmonitor
+22 http 200 https://registry.npmjs.org/fsmonitor
+23 silly registry.get cb [ 200,
+23 silly registry.get   { date: 'Sun, 26 Jan 2014 00:33:43 GMT',
+23 silly registry.get     server: 'CouchDB/1.5.0 (Erlang OTP/R15B03)',
+23 silly registry.get     etag: '"5721UVKMBQ2CAE130E8PLT9Y5"',
+23 silly registry.get     'content-type': 'application/json',
+23 silly registry.get     'content-length': '28890',
+23 silly registry.get     'accept-ranges': 'bytes',
+23 silly registry.get     via: '1.1 varnish',
+23 silly registry.get     age: '0',
+23 silly registry.get     'x-served-by': 'cache-sv95-SJC3',
+23 silly registry.get     'x-cache': 'MISS',
+23 silly registry.get     'x-cache-hits': '0',
+23 silly registry.get     'x-timer': 'S1390696423.028594732,VS0,VE170',
+23 silly registry.get     vary: 'Accept',
+23 silly registry.get     'keep-alive': 'timeout=10, max=50',
+23 silly registry.get     connection: 'Keep-Alive' } ]
+24 silly addNameRange number 2 { name: 'fsmonitor', range: '*', hasData: true }
+25 silly addNameRange versions [ 'fsmonitor',
+25 silly addNameRange   [ '0.1.0', '0.1.1', '0.1.2', '0.2.0', '0.2.1', '0.2.2' ] ]
+26 verbose addNamed [ 'fsmonitor', '0.2.2' ]
+27 verbose addNamed [ '0.2.2', '0.2.2' ]
+28 silly lockFile d342a136-fsmonitor-0-2-2 fsmonitor@0.2.2
+29 verbose lock fsmonitor@0.2.2 /Users/malchak/.npm/d342a136-fsmonitor-0-2-2.lock
+30 silly lockFile d342a136-fsmonitor-0-2-2 fsmonitor@0.2.2
+31 silly lockFile d342a136-fsmonitor-0-2-2 fsmonitor@0.2.2
+32 silly lockFile 3ebf2850-fsmonitor fsmonitor@
+33 silly lockFile 3ebf2850-fsmonitor fsmonitor@
+34 silly resolved [ { name: 'fsmonitor',
+34 silly resolved     version: '0.2.2',
+34 silly resolved     description: 'Fine-grained cross-platform file system monitoring for Node.js',
+34 silly resolved     main: 'lib/index.js',
+34 silly resolved     directories: { test: 'test' },
+34 silly resolved     bin: { fsmonitor: 'bin/fsmonitor.js' },
+34 silly resolved     dependencies: { debug: '~0.7.0', pathspec: '~0.9.2' },
+34 silly resolved     devDependencies: { mocha: '~1.6.0', scopedfs: '~0.1.0' },
+34 silly resolved     scripts: { test: './node_modules/mocha/bin/mocha -R ${REPORTER-spec}' },
+34 silly resolved     repository:
+34 silly resolved      { type: 'git',
+34 silly resolved        url: 'https://github.com/andreyvit/fsmonitor.js.git' },
+34 silly resolved     keywords: [ 'fs', 'file', 'watch', 'watcher', 'monitor', 'change' ],
+34 silly resolved     author: { name: 'Andrey Tarantsov', email: 'andrey@tarantsov.com' },
+34 silly resolved     license: 'MIT',
+34 silly resolved     readme: '# File-grained cross-platform FS monitoring for Node.js\n\n**Wait, wait, how\'s it different from `fs.watch`?** Unlike `fs.watch`, fsmonitor:\n\n* monitors an entire subtree (`fs.watch` only monitors a single folder)\n* gives you the entire list of added, removed and modified files and folders (e.g. when you add or delete a non-empty folder, the change event will contain a list of all files in that folder)\n\nHere\'s what happens when you call `fsmonitor.watch(path)`:\n\n* The specified file system subtree is scanned, and the stat data is kept in memory.\n* `fs.watch` is called to start monitoring every subfolder encountered.\n* When change events are reported, the subtree is rescanned to determine the list of changes.\n* `fs.watch` is called for the new subfolders, and the watchers are shut down for the removed ones.\n\n\n## Status\n\nAlpha stage. Seems to work, waiting for feedback, shipping as part of LiveReload 0.5 for Windows.\n\nPlanned features:\n\n* only reporting changes in the files matching .gitignore-style masks you specify (using pathspec module for handling masks)\n* more efficient native code implementations on Mac and Windows\n* offloading per-folder monitoring backends to child processes to avoid hitting the limit on the number of file handles\n\n\n## Installation\n\n    npm install fsmonitor\n\nor, to use fsmonitor command-line tool (see below):\n\n    npm install -g fsmonitor\n\n\n## Usage\n\n    fsmonitor = require(\'fsmonitor\');\n    fsmonitor.watch(\'/some/folder\', [\'*.js\'], function(change) {\n        console.log("Change detected:\\n" + change);  # has a nice toString\n\n        console.log("Added files:    %j", change.addedFiles);\n        console.log("Modified files: %j", change.modifiedFiles);\n        console.log("Removed files:  %j", change.removedFiles);\n\n        console.log("Added folders:    %j", change.addedFolders);\n        console.log("Modified folders: %j", change.modifiedFolders);\n        console.log("Removed folders:  %j", change.removedFolders);\n    });\n\n\n## Command-line tool\n\nIncludes a command-line tool that can report changes and/or run a specified command on every change.\n\nFor example, to invoke `npm test` when any JavaScript file is modified:\n\n    fsmonitor -s -p \'+*.js\' npm test\n\nUsage:\n\n    Usage: fsmonitor [-d <folder>] [-p] [-s] [-q] [<mask>]... [<command> <arg>...]\n\n    Options:\n      -d <folder>        Specify the folder to monitor (defaults to the current folder)\n      -p                 Print changes to console (default if no command specified)\n      -s                 Run the provided command once on start up\n      -q                 Quiet mode (don\'t print the initial banner)\n\n    Masks:\n      +<mask>            Include only the files matching the given mask\n      !<mask>            Exclude files matching the given mask\n\n      If no inclusion masks are provided, all files not explicitly excluded will be included.\n\n    General options:\n      --help             Display this message\n      --version          Display fsmonitor version number\n',
+34 silly resolved     readmeFilename: 'README.md',
+34 silly resolved     bugs: { url: 'https://github.com/andreyvit/fsmonitor.js/issues' },
+34 silly resolved     homepage: 'https://github.com/andreyvit/fsmonitor.js',
+34 silly resolved     _id: 'fsmonitor@0.2.2',
+34 silly resolved     _from: 'fsmonitor@' } ]
+35 info install fsmonitor@0.2.2 into /usr/local/lib
+36 info installOne fsmonitor@0.2.2
+37 info /usr/local/lib/node_modules/fsmonitor unbuild
+38 verbose tar unpack /Users/malchak/.npm/fsmonitor/0.2.2/package.tgz
+39 silly lockFile a6063840-local-lib-node-modules-fsmonitor tar:///usr/local/lib/node_modules/fsmonitor
+40 verbose lock tar:///usr/local/lib/node_modules/fsmonitor /Users/malchak/.npm/a6063840-local-lib-node-modules-fsmonitor.lock
+41 silly lockFile 09185f3c--npm-fsmonitor-0-2-2-package-tgz tar:///Users/malchak/.npm/fsmonitor/0.2.2/package.tgz
+42 verbose lock tar:///Users/malchak/.npm/fsmonitor/0.2.2/package.tgz /Users/malchak/.npm/09185f3c--npm-fsmonitor-0-2-2-package-tgz.lock
+43 silly gunzTarPerm modes [ '755', '644' ]
+44 error Error: EACCES, mkdir '/usr/local/lib/node_modules/fsmonitor'
+44 error  { [Error: EACCES, mkdir '/usr/local/lib/node_modules/fsmonitor']
+44 error   errno: 3,
+44 error   code: 'EACCES',
+44 error   path: '/usr/local/lib/node_modules/fsmonitor',
+44 error   fstream_type: 'Directory',
+44 error   fstream_path: '/usr/local/lib/node_modules/fsmonitor',
+44 error   fstream_class: 'DirWriter',
+44 error   fstream_stack:
+44 error    [ '/usr/local/lib/node_modules/npm/node_modules/fstream/lib/dir-writer.js:36:23',
+44 error      '/usr/local/lib/node_modules/npm/node_modules/mkdirp/index.js:37:53',
+44 error      'Object.oncomplete (fs.js:107:15)' ] }
+45 error Please try running this command again as root/Administrator.
+46 error System Darwin 13.0.0
+47 error command "node" "/usr/local/bin/npm" "install" "-g" "fsmonitor"
+48 error cwd /Users/malchak/Desktop/simple_auth
+49 error node -v v0.10.24
+50 error npm -v 1.3.21
+51 error path /usr/local/lib/node_modules/fsmonitor
+52 error fstream_path /usr/local/lib/node_modules/fsmonitor
+53 error fstream_type Directory
+54 error fstream_class DirWriter
+55 error code EACCES
+56 error errno 3
+57 error stack Error: EACCES, mkdir '/usr/local/lib/node_modules/fsmonitor'
+58 error fstream_stack /usr/local/lib/node_modules/npm/node_modules/fstream/lib/dir-writer.js:36:23
+58 error fstream_stack /usr/local/lib/node_modules/npm/node_modules/mkdirp/index.js:37:53
+58 error fstream_stack Object.oncomplete (fs.js:107:15)
+59 verbose exit [ 3, true ]

@@ -7,6 +7,7 @@ var UsersNewController = Ember.ObjectController.extend({
 
 			$.post('/users', { user: data }, function(results) {
 				App.AuthManager.authenticate(results.api_key.access_token, results.api_key.user_id);
+				debugger
 				router.transitionTo('index');
 			});
 		}

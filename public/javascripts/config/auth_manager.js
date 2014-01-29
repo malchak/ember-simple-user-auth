@@ -20,7 +20,7 @@ var AuthManager = Ember.Object.extend({
 
 	// Authenticate the user. Once they are authenticated, se the access token
 	// to be submitted with all future AJAX requests to the server.
-	authenticate: function(accessToken, userID) {
+	authenticate: function(accessToken, userId) {
 		$.ajaxSetup({
 			headers: { 'Authorization': 'Bearer' + accessToken }
 		});

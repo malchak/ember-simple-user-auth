@@ -8,7 +8,8 @@ require('../vendor/ember');
 require('../vendor/ember-data'); // delete if you don't want ember-data
 
 var App = window.App = Ember.Application.create();
-App.Store = require('./store'); // delete if you don't want ember-data
+
+App.ApplicationAdapter = DS.RESTAdapter;
 
 module.exports = App;
 

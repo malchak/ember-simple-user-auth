@@ -24,7 +24,8 @@ var AuthManager = Ember.Object.extend({
 		$.ajaxSetup({
 			headers: { 'Authorization': 'Bearer' + accessToken }
 		});
-		var user = User.find(userId);
+		var store = App.__container__.lookup("store:main");
+		var user = store.find('user', userId);
 		this.set('apiKey', App.ApiKey.create({
 			accessToken: accessToken,
 			user: user
@@ -33,7 +34,8 @@ var AuthManager = Ember.Object.extend({
 
 	// Log out the user
 	reset: function(){
-		App.__container__.lookup("route:application").transitionTo('session.new');
+		App.__container__.lookup("route:application").transitionTo('index');
+		//App.__container__.lookup("route:application").transitionTo('session.new');
 		Ember.run.sync();
 		Ember.run.next(this, function(){
 			this.set('apiKey', null);

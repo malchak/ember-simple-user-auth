@@ -9,12 +9,13 @@ require('../vendor/ember');
 require('../vendor/ember-data'); // delete if you don't want ember-data
 
 var App = window.App = Ember.Application.create();
-App.Store = require('./store'); // delete if you don't want ember-data
+
+App.ApplicationAdapter = DS.RESTAdapter;
 
 module.exports = App;
 
 
-},{"../vendor/ember":17,"../vendor/ember-data":16,"../vendor/handlebars":18,"../vendor/jquery":20,"../vendor/jquery.cookie":19,"./store":4}],2:[function(require,module,exports){
+},{"../vendor/ember":17,"../vendor/ember-data":16,"../vendor/handlebars":18,"../vendor/jquery":20,"../vendor/jquery.cookie":19}],2:[function(require,module,exports){
 var User = require('../models/user');
 
 var AuthManager = Ember.Object.extend({
@@ -41,7 +42,8 @@ var AuthManager = Ember.Object.extend({
 		$.ajaxSetup({
 			headers: { 'Authorization': 'Bearer' + accessToken }
 		});
-		var user = User.find(userId);
+		var store = App.__container__.lookup("store:main");
+		var user = store.find('user', userId);
 		this.set('apiKey', App.ApiKey.create({
 			accessToken: accessToken,
 			user: user
@@ -50,7 +52,8 @@ var AuthManager = Ember.Object.extend({
 
 	// Log out the user
 	reset: function(){
-		App.__container__.lookup("route:application").transitionTo('session.new');
+		App.__container__.lookup("route:application").transitionTo('index');
+		//App.__container__.lookup("route:application").transitionTo('session.new');
 		Ember.run.sync();
 		Ember.run.next(this, function(){
 			this.set('apiKey', null);
@@ -100,16 +103,20 @@ App.Router.map(function() {
 
 
 },{"./app":1}],4:[function(require,module,exports){
-// by default, persist application data to localStorage.
-require('../vendor/localstorage_adapter');
+var ApplicationController = Ember.Controller.extend({
+	currentUser: function(){
+		return App.AuthManager.get('apiKey.user');
+	}.property('App.AuthManager.apiKey'),
 
-module.exports = DS.Store.extend({
-  adapter: DS.RESTAdapter.create()
-  //adapter: DS.LSAdapter.create()
+	isAuthenticated: function(){
+		return App.AuthManager.isAuthenticated();
+	}.property('App.AuthManager.apiKey')
 });
 
+module.exports = ApplicationController;
 
-},{"../vendor/localstorage_adapter":21}],5:[function(require,module,exports){
+
+},{}],5:[function(require,module,exports){
 var SesssionsNewController = Ember.ObjectController.extend({
 
 });
@@ -135,7 +142,6 @@ var UsersNewController = Ember.ObjectController.extend({
 
 			$.post('/users', { user: data }, function(results) {
 				App.AuthManager.authenticate(results.api_key.access_token, results.api_key.user_id);
-				debugger
 				router.transitionTo('index');
 			});
 		}
@@ -153,6 +159,7 @@ var App = window.App = require('./config/app');
 require('./templates');
 
 
+App.ApplicationController = require('./controllers/application_controller');
 App.TopSecretController = require('./controllers/top_secret_controller');
 App.UsersNewController = require('./controllers/users/new_controller');
 App.SesssionsNewController = require('./controllers/sesssions/new_controller');
@@ -168,7 +175,7 @@ require('./config/routes');
 module.exports = App;
 
 
-},{"./config/app":1,"./config/routes":3,"./controllers/sesssions/new_controller":5,"./controllers/top_secret_controller":6,"./controllers/users/new_controller":7,"./models/api_key":9,"./models/user":10,"./routes/application_route":11,"./routes/sesssions/new_route":12,"./routes/top_secret_route":13,"./routes/users/new_route":14,"./templates":15}],9:[function(require,module,exports){
+},{"./config/app":1,"./config/routes":3,"./controllers/application_controller":4,"./controllers/sesssions/new_controller":5,"./controllers/top_secret_controller":6,"./controllers/users/new_controller":7,"./models/api_key":9,"./models/user":10,"./routes/application_route":11,"./routes/sesssions/new_route":12,"./routes/top_secret_route":13,"./routes/users/new_route":14,"./templates":15}],9:[function(require,module,exports){
 // Ember.Object instead of DS.Model because this will never persist to or query the server.
 var ApiKey = Ember.Object.extend({
 	access_token: '',
@@ -195,6 +202,13 @@ var ApplicationRoute = Ember.Route.extend({
 	init: function(){
 		this._super();
 		App.AuthManager = AuthManager.create();
+	},
+
+	actions: {
+		logout: function(){
+			App.AuthManager.reset();
+			this.transitionToRoute('index');
+		}
 	}
 });
 
@@ -234,7 +248,7 @@ module.exports = UsersNewRoute;
 Ember.TEMPLATES['application'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
-  var buffer = '', stack1, stack2, hashTypes, hashContexts, options, self=this, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+  var buffer = '', stack1, stack2, hashTypes, hashContexts, options, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
 
 function program1(depth0,data) {
   
@@ -250,11 +264,44 @@ function program3(depth0,data) {
 
 function program5(depth0,data) {
   
+  var buffer = '', hashTypes, hashContexts;
+  data.buffer.push("\n			  <li><a href=\"#\">");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "currentUser.email", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</a></li>\n        <li><a href=\"#\" ");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "logout", {hash:{},contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push(">Logout</a></li>\n      ");
+  return buffer;
+  }
+
+function program7(depth0,data) {
+  
+  var buffer = '', stack1, stack2, hashTypes, hashContexts, options;
+  data.buffer.push("\n      	<li>");
+  hashTypes = {};
+  hashContexts = {};
+  options = {hash:{},inverse:self.noop,fn:self.program(8, program8, data),contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  stack2 = ((stack1 = helpers['link-to'] || depth0['link-to']),stack1 ? stack1.call(depth0, "users.new", options) : helperMissing.call(depth0, "link-to", "users.new", options));
+  if(stack2 || stack2 === 0) { data.buffer.push(stack2); }
+  data.buffer.push("</li>\n				<li>");
+  hashTypes = {};
+  hashContexts = {};
+  options = {hash:{},inverse:self.noop,fn:self.program(10, program10, data),contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  stack2 = ((stack1 = helpers['link-to'] || depth0['link-to']),stack1 ? stack1.call(depth0, "sessions.new", options) : helperMissing.call(depth0, "link-to", "sessions.new", options));
+  if(stack2 || stack2 === 0) { data.buffer.push(stack2); }
+  data.buffer.push("</li>\n			");
+  return buffer;
+  }
+function program8(depth0,data) {
+  
   
   data.buffer.push("Register");
   }
 
-function program7(depth0,data) {
+function program10(depth0,data) {
   
   
   data.buffer.push("Login");
@@ -272,19 +319,12 @@ function program7(depth0,data) {
   options = {hash:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
   stack2 = ((stack1 = helpers['link-to'] || depth0['link-to']),stack1 ? stack1.call(depth0, "top_secret", options) : helperMissing.call(depth0, "link-to", "top_secret", options));
   if(stack2 || stack2 === 0) { data.buffer.push(stack2); }
-  data.buffer.push("</li>\n			<li>");
+  data.buffer.push("</li>\n			\n			");
   hashTypes = {};
   hashContexts = {};
-  options = {hash:{},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
-  stack2 = ((stack1 = helpers['link-to'] || depth0['link-to']),stack1 ? stack1.call(depth0, "users.new", options) : helperMissing.call(depth0, "link-to", "users.new", options));
+  stack2 = helpers['if'].call(depth0, "isAuthenticated", {hash:{},inverse:self.program(7, program7, data),fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
   if(stack2 || stack2 === 0) { data.buffer.push(stack2); }
-  data.buffer.push("</li>\n			<li>");
-  hashTypes = {};
-  hashContexts = {};
-  options = {hash:{},inverse:self.noop,fn:self.program(7, program7, data),contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
-  stack2 = ((stack1 = helpers['link-to'] || depth0['link-to']),stack1 ? stack1.call(depth0, "sessions.new", options) : helperMissing.call(depth0, "link-to", "sessions.new", options));
-  if(stack2 || stack2 === 0) { data.buffer.push(stack2); }
-  data.buffer.push("</li>\n		</ul>\n</div>\n</div>\n\n\n");
+  data.buffer.push("		\n		</ul>\n</div>\n</div>\n\n\n");
   hashTypes = {};
   hashContexts = {};
   data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "outlet", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
@@ -61601,222 +61641,5 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
 }
 
 })( window );
-},{}],21:[function(require,module,exports){
-DS.LSSerializer = DS.JSONSerializer.extend({
-
-  addBelongsTo: function(data, record, key, association) {
-    data[key] = record.get(key + '.id');
-  },
-
-  addHasMany: function(data, record, key, association) {
-    data[key] = record.get(key).map(function(record) {
-      return record.get('id');
-    });
-  },
-
-  // extract expects a root key, we don't want to save all these keys to
-  // localStorage so we generate the root keys here
-  extract: function(loader, json, type, record) {
-    this._super(loader, this.rootJSON(json, type), type, record);
-  },
-
-  extractMany: function(loader, json, type, records) {
-    this._super(loader, this.rootJSON(json, type, 'pluralize'), type, records);
-  },
-
-  rootJSON: function(json, type, pluralize) {
-    var root = this.rootForType(type);
-    if (pluralize == 'pluralize') { root = this.pluralize(root); }
-    var rootedJSON = {};
-    rootedJSON[root] = json;
-    return rootedJSON;
-  }
-
-});
-
-DS.LSAdapter = DS.Adapter.extend(Ember.Evented, {
-
-  init: function() {
-    this._loadData();
-  },
-
-  generateIdForRecord: function() {
-    return Math.random().toString(32).slice(2).substr(0,5);
-  },
-
-  serializer: DS.LSSerializer.create(),
-
-  find: function(store, type, id) {
-    var namespace = this._namespaceForType(type);
-    this._async(function(){
-      var copy = Ember.copy(namespace.records[id]);
-      this.didFindRecord(store, type, copy, id);
-    });
-  },
-
-  findMany: function(store, type, ids) {
-    var namespace = this._namespaceForType(type);
-    this._async(function(){
-      var results = [];
-      for (var i = 0; i < ids.length; i++) {
-        results.push(Ember.copy(namespace.records[ids[i]]));
-      }
-      this.didFindMany(store, type, results);
-    });
-  },
-
-  // Supports queries that look like this:
-  //
-  //   {
-  //     <property to query>: <value or regex (for strings) to match>,
-  //     ...
-  //   }
-  //
-  // Every property added to the query is an "AND" query, not "OR"
-  //
-  // Example:
-  //
-  //  match records with "complete: true" and the name "foo" or "bar"
-  //
-  //    { complete: true, name: /foo|bar/ }
-  findQuery: function(store, type, query, recordArray) {
-    var namespace = this._namespaceForType(type);
-    this._async(function() {
-      var results = this.query(namespace.records, query);
-      this.didFindQuery(store, type, results, recordArray);
-    });
-  },
-
-  query: function(records, query) {
-    var results = [];
-    var id, record, property, test, push;
-    for (id in records) {
-      record = records[id];
-      for (property in query) {
-        test = query[property];
-        push = false;
-        if (Object.prototype.toString.call(test) == '[object RegExp]') {
-          push = test.test(record[property]);
-        } else {
-          push = record[property] === test;
-        }
-      }
-      if (push) {
-        results.push(record);
-      }
-    }
-    return results;
-  },
-
-  findAll: function(store, type) {
-    var namespace = this._namespaceForType(type);
-    this._async(function() {
-      var results = [];
-      for (var id in namespace.records) {
-        results.push(Ember.copy(namespace.records[id]));
-      }
-      this.didFindAll(store, type, results);
-    });
-  },
-
-  createRecords: function(store, type, records) {
-    var namespace = this._namespaceForType(type);
-    records.forEach(function(record) {
-      this._addRecordToNamespace(namespace, record);
-    }, this);
-    this._async(function() {
-      this._didSaveRecords(store, type, records);
-    });
-  },
-
-  updateRecords: function(store, type, records) {
-    var namespace = this._namespaceForType(type);
-    this._async(function() {
-      records.forEach(function(record) {
-        var id = record.get('id');
-        namespace.records[id] = record.serialize({includeId:true});
-      }, this);
-      this._didSaveRecords(store, type, records);
-    });
-  },
-
-  deleteRecords: function(store, type, records) {
-    var namespace = this._namespaceForType(type);
-    this._async(function() {
-      records.forEach(function(record) {
-        var id = record.get('id');
-        delete namespace.records[id];
-      });
-      this._didSaveRecords(store, type, records);
-    });
-
-  },
-
-  dirtyRecordsForHasManyChange: function(dirtySet, parent, relationship) {
-    dirtySet.add(parent);
-  },
-
-  dirtyRecordsForBelongsToChange: function(dirtySet, child, relationship) {
-    dirtySet.add(child);
-  },
-
-  // private
-
-  _getNamespace: function() {
-    return this.namespace || 'DS.LSAdapter';
-  },
-
-  _loadData: function() {
-    var storage = localStorage.getItem(this._getNamespace());
-    this._data = storage ? JSON.parse(storage) : {};
-  },
-
-  _didSaveRecords: function(store, type, records) {
-    var success = this._saveData();
-    if (success) {
-      store.didSaveRecords(records);
-    } else {
-      records.forEach(function(record) {
-        store.recordWasError(record);
-      });
-      this.trigger('QUOTA_EXCEEDED_ERR', records);
-    }
-  },
-
-  _saveData: function() {
-    try {
-      localStorage.setItem(this._getNamespace(), JSON.stringify(this._data));
-      return true;
-    } catch(error) {
-      if (error.name == 'QUOTA_EXCEEDED_ERR') {
-        return false;
-      } else {
-        throw new Error(error);
-      }
-    }
-  },
-
-  _namespaceForType: function(type) {
-    var namespace = type.url || type.toString();
-    return this._data[namespace] || (
-      this._data[namespace] = {records: {}}
-    );
-  },
-
-  _addRecordToNamespace: function(namespace, record) {
-    var data = record.serialize({includeId: true});
-    namespace.records[data.id] = data;
-  },
-
-  _async: function(callback) {
-    var _this = this;
-    setTimeout(function(){
-      Ember.run(_this, callback);
-    }, 1);
-  }
-
-});
-
-
 },{}]},{},[8])
 ;

@@ -9,7 +9,6 @@ var ApplicationRoute = Ember.Route.extend({
 	actions: {
 		logout: function(){
 			App.AuthManager.reset();
-			this.transitionToRoute('index');
 		}
 	}
 });

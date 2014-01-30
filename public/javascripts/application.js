@@ -53,7 +53,6 @@ var AuthManager = Ember.Object.extend({
 	// Log out the user
 	reset: function(){
 		App.__container__.lookup("route:application").transitionTo('index');
-		//App.__container__.lookup("route:application").transitionTo('session.new');
 		Ember.run.sync();
 		Ember.run.next(this, function(){
 			this.set('apiKey', null);
@@ -118,7 +117,17 @@ module.exports = ApplicationController;
 
 },{}],5:[function(require,module,exports){
 var SesssionsNewController = Ember.ObjectController.extend({
+	actions: {
+		loginUser: function(){
+			var router = this.get('target');
+			var data = this.getProperties('username_or_email', 'password');
 
+			$.post('/session', data, function(results){
+				App.AuthManager.authenticate(results.api_key.access_token, results.api_key.user_id);
+				router.transitionTo('index');
+			});
+		}
+	}
 });
 
 module.exports = SesssionsNewController;
@@ -162,20 +171,20 @@ require('./templates');
 App.ApplicationController = require('./controllers/application_controller');
 App.TopSecretController = require('./controllers/top_secret_controller');
 App.UsersNewController = require('./controllers/users/new_controller');
-App.SesssionsNewController = require('./controllers/sesssions/new_controller');
+App.SessionsNewController = require('./controllers/sessions/new_controller');
 App.ApiKey = require('./models/api_key');
 App.User = require('./models/user');
 App.ApplicationRoute = require('./routes/application_route');
 App.TopSecretRoute = require('./routes/top_secret_route');
 App.UsersNewRoute = require('./routes/users/new_route');
-App.SesssionsNewRoute = require('./routes/sesssions/new_route');
+App.SessionsNewRoute = require('./routes/sessions/new_route');
 
 require('./config/routes');
 
 module.exports = App;
 
 
-},{"./config/app":1,"./config/routes":3,"./controllers/application_controller":4,"./controllers/sesssions/new_controller":5,"./controllers/top_secret_controller":6,"./controllers/users/new_controller":7,"./models/api_key":9,"./models/user":10,"./routes/application_route":11,"./routes/sesssions/new_route":12,"./routes/top_secret_route":13,"./routes/users/new_route":14,"./templates":15}],9:[function(require,module,exports){
+},{"./config/app":1,"./config/routes":3,"./controllers/application_controller":4,"./controllers/sessions/new_controller":5,"./controllers/top_secret_controller":6,"./controllers/users/new_controller":7,"./models/api_key":9,"./models/user":10,"./routes/application_route":11,"./routes/sessions/new_route":12,"./routes/top_secret_route":13,"./routes/users/new_route":14,"./templates":15}],9:[function(require,module,exports){
 // Ember.Object instead of DS.Model because this will never persist to or query the server.
 var ApiKey = Ember.Object.extend({
 	access_token: '',
@@ -207,7 +216,6 @@ var ApplicationRoute = Ember.Route.extend({
 	actions: {
 		logout: function(){
 			App.AuthManager.reset();
-			this.transitionToRoute('index');
 		}
 	}
 });
@@ -217,7 +225,9 @@ module.exports = ApplicationRoute;
 
 },{"../config/auth_manager":2}],12:[function(require,module,exports){
 var SesssionsNewRoute = Ember.Route.extend({
-
+	model: function() {
+		return Ember.Object.create();
+	}
 });
 
 module.exports = SesssionsNewRoute;
@@ -324,7 +334,7 @@ function program10(depth0,data) {
   hashContexts = {};
   stack2 = helpers['if'].call(depth0, "isAuthenticated", {hash:{},inverse:self.program(7, program7, data),fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
   if(stack2 || stack2 === 0) { data.buffer.push(stack2); }
-  data.buffer.push("		\n		</ul>\n</div>\n</div>\n\n\n");
+  data.buffer.push("		\n		</ul>\n</div>\n</div>\n\n");
   hashTypes = {};
   hashContexts = {};
   data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "outlet", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
@@ -415,13 +425,38 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
   
 });
 
-Ember.TEMPLATES['sesssions/new'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+Ember.TEMPLATES['sessions/new'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
-  
+  var buffer = '', stack1, hashContexts, hashTypes, options, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
 
 
-  data.buffer.push("<h2>sesssions/new</h2>\n\n");
+  data.buffer.push("<h2>Login</h2>\n\n<form ");
+  hashContexts = {'on': depth0};
+  hashTypes = {'on': "STRING"};
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "loginUser", {hash:{
+    'on': ("submit")
+  },contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push(">\n  <div>\n    <label>Username or Email</label>\n    ");
+  hashContexts = {'type': depth0,'value': depth0,'placeholder': depth0};
+  hashTypes = {'type': "STRING",'value': "ID",'placeholder': "STRING"};
+  options = {hash:{
+    'type': ("text"),
+    'value': ("username_or_email"),
+    'placeholder': ("Username or Email Address")
+  },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  data.buffer.push(escapeExpression(((stack1 = helpers.input || depth0.input),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "input", options))));
+  data.buffer.push("\n  </div>\n\n  <div>\n    <label>Password</label>\n    ");
+  hashContexts = {'type': depth0,'value': depth0,'placeholder': depth0};
+  hashTypes = {'type': "STRING",'value': "ID",'placeholder': "STRING"};
+  options = {hash:{
+    'type': ("password"),
+    'value': ("password"),
+    'placeholder': ("Password")
+  },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  data.buffer.push(escapeExpression(((stack1 = helpers.input || depth0.input),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "input", options))));
+  data.buffer.push("\n  </div>\n\n  <br>\n  <button type=\"submit\">Submit</button>\n</form>");
+  return buffer;
   
 });
 

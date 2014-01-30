@@ -35,7 +35,6 @@ var AuthManager = Ember.Object.extend({
 	// Log out the user
 	reset: function(){
 		App.__container__.lookup("route:application").transitionTo('index');
-		//App.__container__.lookup("route:application").transitionTo('session.new');
 		Ember.run.sync();
 		Ember.run.next(this, function(){
 			this.set('apiKey', null);

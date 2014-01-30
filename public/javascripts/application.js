@@ -15,7 +15,7 @@ App.ApplicationAdapter = DS.RESTAdapter;
 module.exports = App;
 
 
-},{"../vendor/ember":17,"../vendor/ember-data":16,"../vendor/handlebars":18,"../vendor/jquery":20,"../vendor/jquery.cookie":19}],2:[function(require,module,exports){
+},{"../vendor/ember":18,"../vendor/ember-data":17,"../vendor/handlebars":19,"../vendor/jquery":21,"../vendor/jquery.cookie":20}],2:[function(require,module,exports){
 var User = require('../models/user');
 
 var AuthManager = Ember.Object.extend({
@@ -117,14 +117,24 @@ module.exports = ApplicationController;
 
 },{}],5:[function(require,module,exports){
 var SesssionsNewController = Ember.ObjectController.extend({
+	
+	attemptedTransition: null,
+
 	actions: {
 		loginUser: function(){
+			var self = this;
 			var router = this.get('target');
 			var data = this.getProperties('username_or_email', 'password');
+			var attemptedTrans = this.get('attemptedTransition');
 
 			$.post('/session', data, function(results){
 				App.AuthManager.authenticate(results.api_key.access_token, results.api_key.user_id);
-				router.transitionTo('index');
+				if (attemptedTrans) {
+					attemptedTrans.retry();
+					self.set('attemptedTransition', null);
+				} else {
+					router.transitionTo('index');
+				}
 			});
 		}
 	}
@@ -147,14 +157,27 @@ var UsersNewController = Ember.ObjectController.extend({
 		createUser: function(){
 			var router = this.get('target');
 			var data   = this.getProperties('name', 'email', 'username', 'password', 'password_confirmation')
-			var user   = this.get('model')
+			var user   = this.get('model');
 
 			$.post('/users', { user: data }, function(results) {
 				App.AuthManager.authenticate(results.api_key.access_token, results.api_key.user_id);
 				router.transitionTo('index');
+			
+			}).fail(function(jqxhr, textStatus, error){
+				if (jqxhr.status === 422) {
+					errs = JSON.parse(jqxhr.responseText)
+					user.set('errors', errs.errors);
+				}
 			});
+		},
+
+		cancel: function(){
+			var user = this.get('model');
+			user.deleteRecord();
+			this.transitionToRoute('index');
 		}
-	} 
+	}
+
 });
 
 module.exports = UsersNewController;
@@ -175,6 +198,7 @@ App.SessionsNewController = require('./controllers/sessions/new_controller');
 App.ApiKey = require('./models/api_key');
 App.User = require('./models/user');
 App.ApplicationRoute = require('./routes/application_route');
+App.AuthenticatedRoute = require('./routes/authenticated_route');
 App.TopSecretRoute = require('./routes/top_secret_route');
 App.UsersNewRoute = require('./routes/users/new_route');
 App.SessionsNewRoute = require('./routes/sessions/new_route');
@@ -184,7 +208,7 @@ require('./config/routes');
 module.exports = App;
 
 
-},{"./config/app":1,"./config/routes":3,"./controllers/application_controller":4,"./controllers/sessions/new_controller":5,"./controllers/top_secret_controller":6,"./controllers/users/new_controller":7,"./models/api_key":9,"./models/user":10,"./routes/application_route":11,"./routes/sessions/new_route":12,"./routes/top_secret_route":13,"./routes/users/new_route":14,"./templates":15}],9:[function(require,module,exports){
+},{"./config/app":1,"./config/routes":3,"./controllers/application_controller":4,"./controllers/sessions/new_controller":5,"./controllers/top_secret_controller":6,"./controllers/users/new_controller":7,"./models/api_key":9,"./models/user":10,"./routes/application_route":11,"./routes/authenticated_route":12,"./routes/sessions/new_route":13,"./routes/top_secret_route":14,"./routes/users/new_route":15,"./templates":16}],9:[function(require,module,exports){
 // Ember.Object instead of DS.Model because this will never persist to or query the server.
 var ApiKey = Ember.Object.extend({
 	access_token: '',
@@ -198,7 +222,9 @@ module.exports = ApiKey;
 var User = DS.Model.extend({
 	name:  		DS.attr('string'),
 	email:  	DS.attr('string'),
-	username: DS.attr('string')
+	username: DS.attr('string'),
+
+	errors: {}
 });
 
 module.exports = User;
@@ -224,6 +250,30 @@ module.exports = ApplicationRoute;
 
 
 },{"../config/auth_manager":2}],12:[function(require,module,exports){
+var AuthenticatedRoute = Ember.Route.extend({
+	beforeModel: function(){
+		if (!App.AuthManager.isAuthenticated()){
+			this.redirectToLogin(transition);
+		}
+	},
+
+	redirectToLogin: function(transition){
+		var sessionNewController = this.controllerFor('sessions.new');
+		sessionNewController.set('attemptedTransition', transition);
+		this.transitionTo('sessions.new');
+	},
+
+	actions: {
+		error: function(reason, transition) {
+			this.redirectToLogin(transition);
+		}
+	}
+});
+
+module.exports = AuthenticatedRoute;
+
+
+},{}],13:[function(require,module,exports){
 var SesssionsNewRoute = Ember.Route.extend({
 	model: function() {
 		return Ember.Object.create();
@@ -233,15 +283,18 @@ var SesssionsNewRoute = Ember.Route.extend({
 module.exports = SesssionsNewRoute;
 
 
-},{}],13:[function(require,module,exports){
-var TopSecretRoute = Ember.Route.extend({
+},{}],14:[function(require,module,exports){
+var AuthenticatedRoute = require('./authenticated_route');
+var User = require('../models/user');
+
+var TopSecretRoute = AuthenticatedRoute.extend({
 	model: function(){
 		return this.store.findAll('user');
 	}
 });
 
 module.exports = TopSecretRoute;
-},{}],14:[function(require,module,exports){
+},{"../models/user":10,"./authenticated_route":12}],15:[function(require,module,exports){
 var User = require('../../models/user');
 
 var UsersNewRoute = Ember.Route.extend({
@@ -253,7 +306,7 @@ var UsersNewRoute = Ember.Route.extend({
 module.exports = UsersNewRoute;
 
 
-},{"../../models/user":10}],15:[function(require,module,exports){
+},{"../../models/user":10}],16:[function(require,module,exports){
 
 Ember.TEMPLATES['application'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
@@ -317,7 +370,7 @@ function program10(depth0,data) {
   data.buffer.push("Login");
   }
 
-  data.buffer.push("<h1>Ember App</h1>\n\n\n<div class=\"container\">\n<div class=\"navbar\">\n<div class=\"navbar-inner\">\n		<a class=\"brand\" href=\"#\">Simple Auth</a>\n		<ul class=\"nav\">\n			<li>");
+  data.buffer.push("<div class=\"container\">\n<div class=\"navbar\">\n<div class=\"navbar-inner\">\n		<a class=\"brand\" href=\"#\">Simple Auth</a>\n		<ul class=\"nav\">\n			<li>");
   hashTypes = {};
   hashContexts = {};
   options = {hash:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
@@ -399,7 +452,14 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
   data.buffer.push(escapeExpression(helpers.action.call(depth0, "createUser", {hash:{
     'on': ("submit")
   },contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
-  data.buffer.push(">\n	<div>\n    <label>Full Name</label>\n    ");
+  data.buffer.push(">\n	<div ");
+  hashContexts = {'class': depth0};
+  hashTypes = {'class': "STRING"};
+  options = {hash:{
+    'class': (":controls errors.name:error")
+  },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  data.buffer.push(escapeExpression(((stack1 = helpers['bind-attr'] || depth0['bind-attr']),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "bind-attr", options))));
+  data.buffer.push(">\n    <label>Full Name</label>\n    ");
   hashContexts = {'type': depth0,'value': depth0,'placeholder': depth0};
   hashTypes = {'type': "STRING",'value': "ID",'placeholder': "STRING"};
   options = {hash:{
@@ -408,7 +468,18 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
     'placeholder': ("Full Name")
   },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
   data.buffer.push(escapeExpression(((stack1 = helpers.input || depth0.input),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "input", options))));
-  data.buffer.push("\n  </div>\n\n  <div>\n    <label>Email Address</label>\n    ");
+  data.buffer.push("\n    <small class=\"below\">");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "errors.name", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</small>\n  </div>\n\n  <div ");
+  hashContexts = {'class': depth0};
+  hashTypes = {'class': "STRING"};
+  options = {hash:{
+    'class': (":controls errors.email:error")
+  },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  data.buffer.push(escapeExpression(((stack1 = helpers['bind-attr'] || depth0['bind-attr']),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "bind-attr", options))));
+  data.buffer.push(">\n    <label>Email Address</label>\n    ");
   hashContexts = {'type': depth0,'value': depth0,'placeholder': depth0};
   hashTypes = {'type': "STRING",'value': "ID",'placeholder': "STRING"};
   options = {hash:{
@@ -417,7 +488,18 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
     'placeholder': ("Email Address")
   },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
   data.buffer.push(escapeExpression(((stack1 = helpers.input || depth0.input),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "input", options))));
-  data.buffer.push("\n  </div>\n\n  <div>\n    <label>Username</label>\n    ");
+  data.buffer.push("\n    <small class=\"below\">");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "errors.email", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</small>\n  </div>\n\n  <div ");
+  hashContexts = {'class': depth0};
+  hashTypes = {'class': "STRING"};
+  options = {hash:{
+    'class': (":controls errors.username:error")
+  },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  data.buffer.push(escapeExpression(((stack1 = helpers['bind-attr'] || depth0['bind-attr']),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "bind-attr", options))));
+  data.buffer.push(">\n    <label>Username</label>\n    ");
   hashContexts = {'type': depth0,'value': depth0,'placeholder': depth0};
   hashTypes = {'type': "STRING",'value': "ID",'placeholder': "STRING"};
   options = {hash:{
@@ -426,7 +508,18 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
     'placeholder': ("Username")
   },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
   data.buffer.push(escapeExpression(((stack1 = helpers.input || depth0.input),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "input", options))));
-  data.buffer.push("\n  </div>\n\n  <div>\n    <label>Password</label>\n    ");
+  data.buffer.push("\n    <small class=\"below\">");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "errors.username", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</small>\n  </div>\n\n  <div ");
+  hashContexts = {'class': depth0};
+  hashTypes = {'class': "STRING"};
+  options = {hash:{
+    'class': (":controls errors.password:error")
+  },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  data.buffer.push(escapeExpression(((stack1 = helpers['bind-attr'] || depth0['bind-attr']),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "bind-attr", options))));
+  data.buffer.push(">\n    <label>Password</label>\n    ");
   hashContexts = {'type': depth0,'value': depth0,'placeholder': depth0};
   hashTypes = {'type': "STRING",'value': "ID",'placeholder': "STRING"};
   options = {hash:{
@@ -435,7 +528,18 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
     'placeholder': ("Password")
   },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
   data.buffer.push(escapeExpression(((stack1 = helpers.input || depth0.input),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "input", options))));
-  data.buffer.push("\n  </div>\n\n  <div>\n    <label>Confirm Password</label>\n    ");
+  data.buffer.push("\n    <small class=\"below\">");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "errors.password", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</small>\n  </div>\n\n  <div ");
+  hashContexts = {'class': depth0};
+  hashTypes = {'class': "STRING"};
+  options = {hash:{
+    'class': (":controls errors.password_confirmation:error")
+  },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  data.buffer.push(escapeExpression(((stack1 = helpers['bind-attr'] || depth0['bind-attr']),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "bind-attr", options))));
+  data.buffer.push(">\n    <label>Confirm Password</label>\n    ");
   hashContexts = {'type': depth0,'value': depth0,'placeholder': depth0};
   hashTypes = {'type': "STRING",'value': "ID",'placeholder': "STRING"};
   options = {hash:{
@@ -444,7 +548,15 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
     'placeholder': ("Confirm Password")
   },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
   data.buffer.push(escapeExpression(((stack1 = helpers.input || depth0.input),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "input", options))));
-  data.buffer.push("\n  </div>\n\n  <br>\n  <button type=\"submit\">Submit</button>\n</form>");
+  data.buffer.push("\n    <small class=\"below\">");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "errors.password_confirmation", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</small>\n  </div>\n\n  <br>\n  <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\n  <button ");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "cancel", {hash:{},contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push(" class=\"btn btn-defualt\">Cancel</button>\n</form>");
   return buffer;
   
 });
@@ -486,7 +598,7 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
 
 
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /*!
  * @overview  Ember Data
  * @copyright Copyright 2011-2014 Tilde Inc. and contributors.
@@ -11015,7 +11127,7 @@ Ember.onLoad('Ember.Application', function(Application) {
 
 
 })();
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /*!
  * @overview  Ember - JavaScript Application Framework
  * @copyright Copyright 2011-2014 Tilde Inc. and contributors
@@ -51623,7 +51735,7 @@ Ember.State = generateRemovedClass("Ember.State");
 
 
 })();
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /*
 
 Copyright (C) 2011 by Yehuda Katz
@@ -51987,7 +52099,7 @@ Handlebars.template = Handlebars.VM.template;
 })(Handlebars);
 ;
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /*!
  * jQuery Cookie Plugin v1.4.0
  * https://github.com/carhartl/jquery-cookie
@@ -52102,7 +52214,7 @@ Handlebars.template = Handlebars.VM.template;
 	};
 
 }));
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v1.9.1
  * http://jquery.com/

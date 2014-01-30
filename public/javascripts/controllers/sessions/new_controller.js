@@ -1,5 +1,5 @@
 var SesssionsNewController = Ember.ObjectController.extend({
-	
+	loginErrors: null,
 	attemptedTransition: null,
 
 	actions: {
@@ -16,6 +16,12 @@ var SesssionsNewController = Ember.ObjectController.extend({
 					self.set('attemptedTransition', null);
 				} else {
 					router.transitionTo('index');
+				}
+			}).fail(function(jqxhr, textStatus, error){
+				if ( jqxhr.status === 401 ) {
+					errs = JSON.parse(jqxhr.responseText);
+					self.set('loginErrors', errs.errors);
+					console.log(self.get('loginErrors'));
 				}
 			});
 		}

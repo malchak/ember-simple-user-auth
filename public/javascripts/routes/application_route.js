@@ -9,6 +9,7 @@ var ApplicationRoute = Ember.Route.extend({
 	actions: {
 		logout: function(){
 			App.AuthManager.reset();
+			this.controllerFor('sessions.new').set('loginErrors', null);
 		}
 	}
 });

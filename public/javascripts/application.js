@@ -117,7 +117,7 @@ module.exports = ApplicationController;
 
 },{}],5:[function(require,module,exports){
 var SesssionsNewController = Ember.ObjectController.extend({
-	
+	loginErrors: null,
 	attemptedTransition: null,
 
 	actions: {
@@ -134,6 +134,12 @@ var SesssionsNewController = Ember.ObjectController.extend({
 					self.set('attemptedTransition', null);
 				} else {
 					router.transitionTo('index');
+				}
+			}).fail(function(jqxhr, textStatus, error){
+				if ( jqxhr.status === 401 ) {
+					errs = JSON.parse(jqxhr.responseText);
+					self.set('loginErrors', errs.errors);
+					console.log(self.get('loginErrors'));
 				}
 			});
 		}
@@ -242,6 +248,7 @@ var ApplicationRoute = Ember.Route.extend({
 	actions: {
 		logout: function(){
 			App.AuthManager.reset();
+			this.controllerFor('sessions.new').set('loginErrors', null);
 		}
 	}
 });
@@ -564,10 +571,14 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
 Ember.TEMPLATES['sessions/new'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
-  var buffer = '', stack1, hashContexts, hashTypes, options, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
+  var buffer = '', stack1, hashTypes, hashContexts, options, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
 
 
-  data.buffer.push("<h2>Login</h2>\n\n<form ");
+  data.buffer.push("<h2>Login</h2>\n<p>");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "loginErrors", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</p>\n<form ");
   hashContexts = {'on': depth0};
   hashTypes = {'on': "STRING"};
   data.buffer.push(escapeExpression(helpers.action.call(depth0, "loginUser", {hash:{

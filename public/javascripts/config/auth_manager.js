@@ -22,7 +22,7 @@ var AuthManager = Ember.Object.extend({
 	// to be submitted with all future AJAX requests to the server.
 	authenticate: function(accessToken, userId) {
 		$.ajaxSetup({
-			headers: { 'Authorization': 'Bearer' + accessToken }
+			headers: { 'Authorization': 'Bearer ' + accessToken }
 		});
 		var store = App.__container__.lookup("store:main");
 		var user = store.find('user', userId);

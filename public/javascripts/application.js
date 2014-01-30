@@ -40,7 +40,7 @@ var AuthManager = Ember.Object.extend({
 	// to be submitted with all future AJAX requests to the server.
 	authenticate: function(accessToken, userId) {
 		$.ajaxSetup({
-			headers: { 'Authorization': 'Bearer' + accessToken }
+			headers: { 'Authorization': 'Bearer ' + accessToken }
 		});
 		var store = App.__container__.lookup("store:main");
 		var user = store.find('user', userId);
@@ -235,12 +235,12 @@ module.exports = SesssionsNewRoute;
 
 },{}],13:[function(require,module,exports){
 var TopSecretRoute = Ember.Route.extend({
-
+	model: function(){
+		return this.store.findAll('user');
+	}
 });
 
 module.exports = TopSecretRoute;
-
-
 },{}],14:[function(require,module,exports){
 var User = require('../../models/user');
 
@@ -356,10 +356,34 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
 Ember.TEMPLATES['top_secret'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, hashTypes, hashContexts, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
   
+  var buffer = '', hashTypes, hashContexts;
+  data.buffer.push("\n    <tr>\n      <td>");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "name", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</td>\n      <td>");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "email", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</td>\n      <td>");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "username", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</td>\n    </tr>\n  ");
+  return buffer;
+  }
 
-
-  data.buffer.push("<h2>top_secret</h2>\n\n");
+  data.buffer.push("<h2>Users (Top Secret Stuff)</h2>\n\n<table class=\"table\">\n  <thead>\n    <tr>\n      <th>Name</th>\n      <th>Email</th>\n      <th>Username</th>\n    </tr>\n  </thead>\n  <tbody>\n  ");
+  hashTypes = {};
+  hashContexts = {};
+  stack1 = helpers.each.call(depth0, "controller", {hash:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  </tbody>\n</table>\n");
+  return buffer;
   
 });
 

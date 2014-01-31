@@ -1,6 +1,7 @@
 var UsersNewController = Ember.ObjectController.extend({
 	actions: {
 		createUser: function(){
+			var self = this
 			var router = this.get('target');
 			var data   = this.getProperties('name', 'email', 'username', 'password', 'password_confirmation')
 			var user   = this.get('model');

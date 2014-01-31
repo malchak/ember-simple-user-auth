@@ -151,7 +151,8 @@ module.exports = SesssionsNewController;
 
 },{}],6:[function(require,module,exports){
 var TopSecretController = Ember.ArrayController.extend({
-
+	sortProperties: ['id'],
+	sortAscending: true
 });
 
 module.exports = TopSecretController;
@@ -161,6 +162,7 @@ module.exports = TopSecretController;
 var UsersNewController = Ember.ObjectController.extend({
 	actions: {
 		createUser: function(){
+			var self = this
 			var router = this.get('target');
 			var data   = this.getProperties('name', 'email', 'username', 'password', 'password_confirmation')
 			var user   = this.get('model');
